@@ -1,0 +1,42 @@
+{
+	"name": "mqtt-overvis",
+	"version": "0.0.1",
+
+	"description": "MQTT integration for Overvis platform",
+	"author": "zephyrus",
+
+	"license": "MIT",
+
+	"homepage": "https://github.com/zephyrus/mqtt-overvis",
+
+	"bugs": {
+		"url": "https://github.com/zephyrus/mqtt-overvis/issues"
+	},
+
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/zephyrus/mqtt-overvis.git"
+	},
+
+	"keywords": [
+		"mqtt",
+		"overvis"
+	],
+
+	"scripts": {
+		"lint": "eslint .",
+		"start": "node index.js"
+	},
+
+	"dependencies": {
+		"mqtt": "4.1.0",
+		"request": "2.88.2",
+		"lodash": "4.17.19"
+	},
+
+	"devDependencies": {
+		"eslint": "7.5.0",
+		"eslint-plugin-import": "2.22.0",
+		"eslint-config-airbnb-base": "14.2.0"
+	}
+}

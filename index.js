@@ -1,0 +1,142 @@
+const { connect } = require('mqtt');
+const { Overvis } = require('./overvis');
+const { config } = require('./config');
+const { version } = require('./package');
+
+const topics = {
+	device: () => `${config.mqtt.path}`,
+	state: () => `${config.mqtt.path}/state`,
+	status: () => `${config.mqtt.path}/status`,
+	set: () => `${config.mqtt.path}/set`,
+	report: () => `${config.mqtt.path}/report`,
+};
+
+const mqtt = connect(config.mqtt.host, {
+	username: config.mqtt.username,
+	password: config.mqtt.password,
+	clientId: config.mqtt.id,
+	will: {
+		topic: topics.device(),
+		payload: JSON.stringify({ online: false, version }),
+		retain: true,
+	},
+});
+
+const overvis = new Overvis(config.overvis);
+
+const format = (type, args) => [
+	`[${type.toUpperCase()}]`,
+	...args,
+].join(' ');
+
+const log = (type, ...args) => console.log(format(type, args));
+
+const error = (type, ...args) => console.error(format(type, args));
+
+mqtt.on('connect', () => {
+	log('mqtt', `connected to ${config.mqtt.host}`);
+
+	mqtt.subscribe(topics.set());
+});
+
+overvis.on('connection', (online) => {
+	const status = online
+		? 'connected to'
+		: 'disconnected from';
+
+	log('overvis', `${status} ${config.overvis.host}`);
+
+	mqtt.publish(topics.device(), JSON.stringify({
+		online,
+		version,
+		...overvis.info,
+	}), { retain: true });
+});
+
+overvis.on('status', (status) => {
+	log('overvis', `status ${JSON.stringify(status)}`);
+	mqtt.publish(topics.status(), JSON.stringify(status), { retain: true });
+});
+
+overvis.on('state', (status) => {
+	log('overvis', `state ${JSON.stringify(status)}`);
+	mqtt.publish(topics.status(), JSON.stringify(status), { retain: true });
+});
+
+overvis.on('report', (report) => {
+	log('overvis', `report ${report.time.toISOString()}`);
+	mqtt.publish(topics.report(), JSON.stringify(report));
+});
+
+// zway.on('login', () => {
+// 	if (online) return;
+//
+// 	log('zway', `authenticated on ${config.zway.host}`);
+//
+// 	online = true;
+//
+// 	mqtt.publish(topics.state(), JSON.stringify({
+// 		online: true,
+// 		version,
+// 	}), { retain: true });
+// });
+//
+// zway.on('device', (device) => {
+// 	const topic = topics.change(device.id);
+//
+// 	mqtt.subscribe(topic);
+// 	subsciptions[topic] = device;
+//
+// 	mqtt.publish(topics.update(device.id), JSON.stringify(device.toJSON()), {
+// 		retain: true,
+// 	});
+// });
+//
+// zway.on('change', (device) => {
+// 	log('zway', `update for ${device.id}`);
+// 	log('zway', `  > ${JSON.stringify(device.toJSON())}`);
+//
+// 	mqtt.publish(topics.update(device.id), JSON.stringify(device.toJSON()), {
+// 		retain: true,
+// 	});
+// });
+//
+// zway.on('command', (id, command, value) => {
+// 	log('zway', `command [${id}, ${command}, ${value}]`);
+// });
+//
+// zway.on('response', (path, statusCode) => {
+// 	if (statusCode === 200) return;
+//
+// 	log('zway', `response ${statusCode} for ${path}`);
+// });
+
+mqtt.on('message', (topic, data) => {
+	// const device = subsciptions[topic];
+	//
+	// if (!device) {
+	// 	error('mqtt', `received data for unknown device ${topic}`);
+	// 	return;
+	// }
+	//
+	try {
+		log('overvis', 'received');
+		log('overvis', `  > ${data.toString()}`);
+
+		overvis.set(JSON.parse(data.toString()));
+	} catch (e) {
+		error('mqtt', 'not able to parse incoming message');
+	}
+
+});
+
+overvis.on('error', (e) => {
+	console.log(e);
+	error('overvis', 'overvis error');
+	error('overvis', `  > ${e.toString()}`);
+});
+
+mqtt.on('error', (e) => {
+	error('mqtt', 'error');
+	error('mqtt', `  > ${e.toString()}`);
+});
