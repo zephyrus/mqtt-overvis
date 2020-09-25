@@ -1,6 +1,6 @@
 {
 	"name": "mqtt-overvis",
-	"version": "0.0.3",
+	"version": "0.0.4",
 
 	"description": "MQTT integration for Overvis platform",
 	"author": "zephyrus",

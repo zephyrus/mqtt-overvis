@@ -193,7 +193,7 @@ class Overvis extends EventEmitter {
 			},
 			status: {
 				voltage: data.volt_msr / 10,
-				current: data.cur_msr,
+				current: data.cur_msr / 100,
 				frequency: data.freq_msr / 100,
 				power: data.pows_msr,
 				energy: data.enrgs_msr,
