@@ -1,4 +1,4 @@
-# mqtt-zwave
+# mqtt-overvis
 MQTT integration for Z-Wave Z-Way Controller
 
 ## Docker Compose
@@ -9,7 +9,7 @@ version: '3'
 services:
 
   overvis:
-    image: 2mqtt/overvis:0.0.5
+    image: 2mqtt/overvis:0.0.6
 
     restart: always
 

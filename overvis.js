@@ -152,8 +152,6 @@ class Overvis extends EventEmitter {
 			...opts,
 		};
 
-		// console.log('>', this.path(path));
-
 		if (this.hangup) clearTimeout(this.hangup);
 
 		return new Promise((resolve, reject) => request(req, (err, response) => {
@@ -165,8 +163,6 @@ class Overvis extends EventEmitter {
 				if (response.body) {
 					response.body = JSON.parse(response.body);
 				}
-
-				// console.log('<', response.statusCode, response.body)
 
 				const { STATUS: status, ...data } = response.body;
 
